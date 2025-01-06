@@ -28,11 +28,25 @@ export async function generateChatResponse(textMessage) {
 
   // Extract the latest user message to send
   const prompt = textMessage[textMessage.length - 1].parts[0].text;
+const greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "good day"];
+  if(greetings.includes(prompt.trim().toLowerCase())){
+    return "Hello! How can I assist you today? Feel free to ask any questions or discuss any topics related to medicine or medical education.";
+  }
+
+  const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+  const embeddingText = await embeddingModel.embedContent(prompt);
+  let vecArray = [];
+  if(embeddingText){
+    vecArray = embeddingText.embedding.values;
+  }
+  else{
+    vecArray = embedding.vectors;
+  }
 
   // Query Pinecone for relevant data
   const response = await index.namespace('ns1').query({
-    topK: 2,
-    vector: embedding.vectors, 
+    topK: 5,
+    vector: vecArray, 
     includeValues: true,
     includeMetadata: true,
     // filter: { text: { '$eq': prompt } },
@@ -48,7 +62,7 @@ export async function generateChatResponse(textMessage) {
     fetchedData = "No relevant matches were found for the user's query in the database. Please respond politely and suggest that the user refine their query, try alternative keywords, or provide more context for better results. !important But do not say if they ask generic questions like hi, hello and so on.";
   }
 
-  const result = await chat.sendMessage(`${prompt}\n\n${fetchedData}`);
+  const result = await chat.sendMessage(`Use headings in your answer and dont say based on text you provided. Question: ${prompt}\n\n Context: ${fetchedData} !important if provided context is not relevant then say your answer according to prompt`);
   const aiResponse = await result.response;
   const text = await aiResponse.text();
 
