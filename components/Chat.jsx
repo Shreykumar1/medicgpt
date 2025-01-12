@@ -10,8 +10,25 @@ import Markdown from 'react-markdown'
 
 const Chat = () => {
   const [text, setText] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    const stored = sessionStorage.getItem('chatMessages');
+    const storedTimestamp = sessionStorage.getItem('chatMessagesTimestamp');
+    
+    if (stored && storedTimestamp) {
+      const now = new Date().getTime();
+      const timestamp = parseInt(storedTimestamp);
+      if (now - timestamp < 180000) {
+        return JSON.parse(stored);
+      }
+    }
+    return [];
+  });
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    sessionStorage.setItem('chatMessages', JSON.stringify(messages));
+    sessionStorage.setItem('chatMessagesTimestamp', new Date().getTime().toString());
+  }, [messages]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (query) => {
