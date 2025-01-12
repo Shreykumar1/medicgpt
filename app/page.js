@@ -9,9 +9,9 @@ export default function Home() {
           <div className="max-w-md">
             <h1 className="text-6xl font-bold text-primary">MedicGPT</h1>
             <p className="py-6 text-lg leading-loose">
-            MedicGPT: Your AI language companion. Powered by Gemini, it enhances your conversations, content creation, and more!
+              Your AI-powered medical study companion. Get instant answers to clinical questions and understand complex medical concepts with ease.
             </p>
-            <Link href='/chat' className="btn btn-secondary">Get Started</Link>
+            <Link href='/chat' className="btn btn-secondary">Start Learning</Link>
           </div>
         </div>
       </div>
