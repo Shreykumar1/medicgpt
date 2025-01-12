@@ -14,7 +14,20 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (query) => generateChatResponse([...messages, query]),
+    mutationFn: async (query) => {
+        const response = await fetch('https://medicgpt-backend.onrender.com/generate-response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ textMessage: query.parts[0].text }),
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data.response;
+    },
 
     onSuccess: (data) => {
       const resp = {
@@ -54,14 +67,15 @@ const Chat = () => {
       <div className='max-h-[calc(100vh-12rem)] overflow-auto'>
         {messages.map(({ role, parts }, index) => {
           const avatar = role == 'user' ? '👤' : '🤖';
-          const bcg = role == 'user' ? 'bg-base-200' : 'bg-base-100';
+          const bcg = role == 'user' ? 'bg-base-200 ' : 'bg-base-100';
+          const alignment = role == 'user' ? 'flex-row-reverse' : '';
           return (
             <div
               key={index}
-              className={` ${bcg} flex py-6 pl-0 md:pl-2 px-8 text-justify max-w-4xl
-               text-md leading-loose border-b border-base-300`}
+              className={`flex ${alignment} py-6 pl-0 md:pl-2 px-8 text-justify max-w-4xl
+               text-md leading-loose border-b border-base-300 ${bcg}`}
             >
-              <span className='mr-4 '>{avatar}</span>
+              <span className={`${role==='user'?'ml-4':'mr-4'}`}>{avatar}</span>
               <div className='max-w-3xl'><Markdown>{parts[0].text}</Markdown></div>
             </div>
           );
@@ -75,7 +89,7 @@ const Chat = () => {
         <div className='join w-full'>
           <input
             type='text'
-            placeholder='Message GeniusGPT'
+            placeholder='Message MedicGPT'
             className='input input-bordered join-item w-full'
             value={text}
             required
